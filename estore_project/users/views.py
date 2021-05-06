@@ -1,45 +1,60 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
-from django.views.generic import DetailView, RedirectView, UpdateView
+from django.contrib.auth.hashers import check_password
+from rest_framework import status
+from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .serializers import UserSerializer
 
 User = get_user_model()
 
 
-class UserDetailView(LoginRequiredMixin, DetailView):
+class Signup(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = UserSerializer
+    queryset = ""
 
-    model = User
-    slug_field = "username"
-    slug_url_kwarg = "username"
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
+        user = User.objects.get(username=self.request.data["username"])
 
-user_detail_view = UserDetailView.as_view()
-
-
-class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-
-    model = User
-    fields = ["name"]
-    success_message = _("Information successfully updated")
-
-    def get_success_url(self):
-        return self.request.user.get_absolute_url()  # type: ignore [union-attr]
-
-    def get_object(self):
-        return self.request.user
-
-
-user_update_view = UserUpdateView.as_view()
+        refresh = RefreshToken.for_user(user)
+        res = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "user_id": user.pk,
+            "user_name": str(user.username),
+            "user_email": str(user.email),
+        }
+        return Response(res, status.HTTP_201_CREATED)
 
 
-class UserRedirectView(LoginRequiredMixin, RedirectView):
+class Login(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = UserSerializer
+    queryset = ""
 
-    permanent = False
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get(username=self.request.data["username"])
 
-    def get_redirect_url(self):
-        return reverse("users:detail", kwargs={"username": self.request.user.username})
+        if user is not None and check_password(
+            self.request.data["password"], user.password
+        ):
+            refresh = RefreshToken.for_user(user)
+            res = {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user_id": user.pk,
+                "user_name": str(user.username),
+                "user_email": str(user.email),
+            }
 
+            return Response(res, status.HTTP_201_CREATED)
 
-user_redirect_view = UserRedirectView.as_view()
+        else:
+            return Response(status.HTTP_400_BAD_REQUEST)
