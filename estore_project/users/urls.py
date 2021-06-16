@@ -1,14 +1,11 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from estore_project.users.views import (
-    user_detail_view,
-    user_redirect_view,
-    user_update_view,
-)
+from .views import LoginView, Signup
 
 app_name = "users"
 urlpatterns = [
-    path("~redirect/", view=user_redirect_view, name="redirect"),
-    path("~update/", view=user_update_view, name="update"),
-    path("<str:username>/", view=user_detail_view, name="detail"),
+    path("signup/", view=Signup.as_view(), name="signup"),
+    path("login/", LoginView.as_view(), name="login"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]

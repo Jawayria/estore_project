@@ -11,7 +11,7 @@ SECRET_KEY = env(
     default="Ogtmlp1IJ4nJ6wLEIQt9aabpkBjaD9iVKUcVv5yseqoqHQMXR7svgQqckkmr7Uua",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "localhost:3000"]
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -43,16 +43,15 @@ DEBUG_TOOLBAR_CONFIG = {
 }
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#internal-ips
 INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
-if env("USE_DOCKER") == "yes":
-    import socket
+# if env("USE_DOCKER") == "yes":
+#    import socket
 
-    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    INTERNAL_IPS += [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
+#    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+#    INTERNAL_IPS += [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
 # django-extensions
 # ------------------------------------------------------------------------------
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]  # noqa F405
-
 # Your stuff...
 # ------------------------------------------------------------------------------

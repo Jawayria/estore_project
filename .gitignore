@@ -329,3 +329,5 @@ estore_project/media/
 .env
 .envs/*
 !.envs/.local/
+
+.idea
